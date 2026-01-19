@@ -1,0 +1,12 @@
+{
+  "typeCheckingMode": "standard",
+  "reportUnknownMemberType": "information",
+  "include": [
+    "**/*.py",
+    "**/*.ipynb"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/.*"
+  ]
+}

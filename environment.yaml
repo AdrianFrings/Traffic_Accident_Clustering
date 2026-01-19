@@ -1,0 +1,16 @@
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - matplotlib
+  - pandas
+  - altair
+  - geopandas
+  - seaborn
+  - ipykernel
+  - vl-convert-python
+  - contextily
+  - manim
+  - scikit-learn

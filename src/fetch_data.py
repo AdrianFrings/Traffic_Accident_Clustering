@@ -22,7 +22,8 @@ def fetch_traffic_data():
         if not os.path.exists(download_path):
             url = f"{DATA_URL_STUB}{dataset_title}"
             print(f"Fetching {dataset_title}...")
-            os.system(f"curl -o {download_path} {url}")
+            import subprocess
+            subprocess.run(["curl", "-o", download_path, url], check=True)
         else:
             print(f"Already have {dataset_title}, skipping...")
 

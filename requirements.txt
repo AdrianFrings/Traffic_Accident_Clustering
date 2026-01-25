@@ -1,0 +1,14 @@
+numpy
+matplotlib
+pandas
+altair
+geopandas
+seaborn
+ipykernel
+vl-convert-python
+contextily
+manim
+scikit-learn
+jupyter
+notebook
+nbconvert

@@ -27,5 +27,8 @@ data/*.csv
 !data/city_info.csv
 Urban_Mobility_Risk_App/data/*.csv
 !Urban_Mobility_Risk_App/data/city_info.csv
+Traffic Accident Dashboard/data/*.csv
+!Traffic Accident Dashboard/data/city_info.csv
+
 # Also ignore Mac OS artifacts
 .DS_Store

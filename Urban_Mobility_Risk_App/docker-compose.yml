@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  urban-mobility-app:
+    build: .
+    container_name: urban-mobility-app
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    # We can also add a command to run the processor only via a separate profile,
+    # but the default behavior is running the app.
+    # To run the processor: docker-compose run urban-mobility-app python src/processor.py

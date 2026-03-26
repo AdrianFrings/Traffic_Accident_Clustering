@@ -1,0 +1,11 @@
+pandas
+geopandas
+scikit-learn
+streamlit
+folium
+reverse_geocoder
+pyarrow
+pyproj
+streamlit-folium
+contextily
+matplotlib

@@ -21,3 +21,11 @@ src/media/videos/**/partial_movie_files/
 
 # Ignore MAC files
 *.DS_Store
+
+# Ignore large raw CSV data to prevent gigantic repository sizes
+data/*.csv
+!data/city_info.csv
+Urban_Mobility_Risk_App/data/*.csv
+!Urban_Mobility_Risk_App/data/city_info.csv
+# Also ignore Mac OS artifacts
+.DS_Store

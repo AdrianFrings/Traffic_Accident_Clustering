@@ -9,3 +9,4 @@ pyproj
 streamlit-folium
 contextily
 matplotlib
+geopy

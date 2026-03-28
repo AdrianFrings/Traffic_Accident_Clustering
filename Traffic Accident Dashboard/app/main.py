@@ -9,13 +9,15 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import contextily
 import numpy as np
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 
 # Constants
 DATA_FILE = pathlib.Path('data/processed/clusters.parquet')
 POINTS_FILE = pathlib.Path('data/processed/cluster_points.parquet')
 DEFAULT_CITY = "Frankfurt am Main"
 
-st.set_page_config(layout="wide", page_title="Urban Mobility Risk App")
+st.set_page_config(layout="wide", page_title="Traffic Accident Risk Dashboard")
 
 @st.cache_data
 def load_data():
@@ -29,6 +31,26 @@ def load_points_data():
     if not POINTS_FILE.exists():
         return pd.DataFrame()
     return pd.read_parquet(POINTS_FILE)
+
+@st.cache_data(show_spinner=False)
+def get_street_names(lats, lons):
+    geolocator = Nominatim(user_agent="traffic_risk_app")
+    geocode = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    
+    streets = []
+    for lat, lon in zip(lats, lons):
+        try:
+            loc = geocode((lat, lon), language='de', timeout=5)
+            if loc and 'address' in loc.raw:
+                addr = loc.raw['address']
+                # Try to get the finest granularity
+                street = addr.get('road', addr.get('pedestrian', addr.get('path', addr.get('suburb', 'Unknown Street'))))
+                streets.append(street)
+            else:
+                streets.append("Unknown Street")
+        except:
+            streets.append("Unknown Street")
+    return streets
 
 @st.dialog("Cluster Zoom View", width="large")
 def show_cluster_dialog(selected_cluster, points_df, selected_mode):
@@ -78,7 +100,7 @@ def show_cluster_dialog(selected_cluster, points_df, selected_mode):
             if selected_mode == 'Bicycle': color = 'blue'
             elif selected_mode == 'Pedestrian': color = 'green'
             
-            # Using alpha transparency and white edgecolors to distinctly expose overlapping dots!
+            # Using alpha transparency and white edgecolors to distinctly expose overlapping dots
             gdf_clusters.plot(ax=ax, color=color, markersize=50, alpha=0.6, edgecolors='white', linewidth=0.5, legend=False)
             
             minx, miny, maxx, maxy = gdf_clusters.total_bounds
@@ -115,53 +137,34 @@ def show_cluster_dialog(selected_cluster, points_df, selected_mode):
                 st.caption("No valid type breakdown available.")
 
 def main():
-    st.title("🚦 Urban Mobility Risk Dashboard")
-    st.markdown("Identify high-leverage intervention points for traffic safety.")
+    st.title("Traffic Accident Risk Dashboard")
+    st.markdown("This Dashboard shows high-risk spots for traffic accidents in your city. It uses goverment data from 2016-2020 for accidents that lead to physical injury. Use to identify High-Leverage Intervention Points for Traffic Safety in your city.")
 
     df = load_data()
     points_df = load_points_data()
     if df.empty:
         return
 
-    # --- Sidebar ---
     st.sidebar.header("Configuration")
     
     # City Selector
     available_cities = sorted(df['City'].unique())
     default_index = available_cities.index(DEFAULT_CITY) if DEFAULT_CITY in available_cities else 0
     selected_city = st.sidebar.selectbox("Select City", available_cities, index=default_index)
-
-    # Accident Type Filter
-    # Get available modes for this city (though typically fixed set)
-    # We want "All" to show everything, or select specific?
-    # Processor saves 'Mode' column: 'Bicycle', 'Car', 'Pedestrian', 'All' (if we kept it? We might have skipped 'All' in loop if dict was just keys)
-    # Let's check processor logic: "for mode_name, col_name in modes.items():" -> if I ran it, it would have 'All' too.
-    # The user said "I want to look at vehicle, pedestrian and bicycle accidents as filter options"
-    # So drop-down.
     
     available_modes = sorted(df['Mode'].unique())
-    # Ensure 'All' is first if present, otherwise All means no filter? 
-    # Actually the processor generates CLUSTERS for specific modes. 
-    # So if I select "Bicycle", I show clusters generated from Bicycle data.
-    # If I select "All", I show clusters generated from ALL data.
-    # This is distinct data rows.
     
-    selected_mode = st.sidebar.selectbox("Accident Type Involved", available_modes)
+    selected_mode = st.sidebar.selectbox("Accident Participant", available_modes)
 
-    # --- Filtering ---
     # Filter by City AND Mode
     filtered_data = df[
         (df['City'] == selected_city) & 
         (df['Mode'] == selected_mode)
-    ]
-
-    # --- Main Content ---
+    ].copy()
     
     # KPIs
-    st.markdown("### Key Metrics")
-    col1, col2 = st.columns(2)
-    col1.metric("Total Clusters", len(filtered_data))
-    col2.metric("Total Accidents", filtered_data['AccidentCount'].sum() if not filtered_data.empty else 0)
+    st.sidebar.metric("Total Clusters", len(filtered_data))
+    st.sidebar.metric("Total Accidents", filtered_data['AccidentCount'].sum() if not filtered_data.empty else 0)
 
     col_map, col_details = st.columns([2, 1])
 
@@ -169,6 +172,10 @@ def main():
         st.subheader(f"Risk Map ({selected_city})")
         
         if not filtered_data.empty:
+            with st.spinner("Resolving street names..."):
+                street_names = get_street_names(filtered_data['Lat'].tolist(), filtered_data['Lon'].tolist())
+            filtered_data['StreetName'] = street_names
+            
             # Centroid
             center_lat = filtered_data['Lat'].mean()
             center_lon = filtered_data['Lon'].mean()
@@ -187,7 +194,7 @@ def main():
                 # Popup Content
                 popup_html = f"""
                 <div style="font-family: sans-serif;">
-                    <b>{row['LocationName']}</b><br>
+                    <b>{row['StreetName']}</b><br>
                     Accidents: {row['AccidentCount']}<br>
                     <a href="{gmaps_link}" target="_blank">Open in Google Maps</a>
                 </div>
@@ -195,9 +202,9 @@ def main():
                 
                 folium.CircleMarker(
                     location=[row['Lat'], row['Lon']],
-                    radius=6, # Fixed size as requested ("...away from a scaling bubble")
+                    radius=6, 
                     popup=folium.Popup(popup_html, max_width=300),
-                    tooltip=f"{row['LocationName']} ({row['AccidentCount']} accidents)",
+                    tooltip=f"{row['StreetName']} ({row['AccidentCount']} accidents)",
                     color=color,
                     fill=True,
                     fill_opacity=0.7,
@@ -230,7 +237,7 @@ def main():
             
             for i, row in top_clusters.head(8).iterrows():
                 with st.container(border=True):
-                    st.markdown(f"**#{i+1}: {row['LocationName']}**")
+                    st.markdown(f"**#{i+1}: {row['StreetName']}**")
                     st.markdown(f"{row['AccidentCount']} Accidents")
                     if st.button("🔍 View Details", key=f"btn_{row['City']}_{row['Cluster_ID']}"):
                         show_cluster_dialog(row, points_df, selected_mode)

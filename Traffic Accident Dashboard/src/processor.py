@@ -7,6 +7,8 @@ from pathlib import Path
 from pyproj import Transformer
 import logging
 
+from partition_points import write_partitions
+
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -349,12 +351,19 @@ def main():
         # 6. Save
         logging.info(f"Saving {len(final_df)} clusters to {OUTPUT_FILE}...")
         final_df.to_parquet(OUTPUT_FILE)
-        
+
         POINTS_FILE = PROCESSED_DATA_DIR / 'cluster_points.parquet'
         logging.info(f"Saving {len(final_points)} detailed points to {POINTS_FILE}...")
         final_points.to_parquet(POINTS_FILE)
-        
-        logging.info("Done.")
+
+        # 7. Write per-city partitions (with WGS84 lat/lon) for the runtime backend,
+        #    so it reads one small city file per request instead of all points.
+        logging.info("Writing per-city point partitions for the API...")
+        n_parts = write_partitions(final_points)
+        logging.info(f"Wrote {n_parts} city partitions.")
+
+        logging.info("Done. Next, bake street names into clusters.parquet with: "
+                     "python src/enrich_street_names.py")
     else:
         logging.warning("No clusters generated.")
 

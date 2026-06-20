@@ -1,0 +1,39 @@
+@import 'tailwindcss' source(none);
+@source './**/*.{js,ts,jsx,tsx}';
+@import 'tw-animate-css';
+@import './styles/globals.css';
+
+/* MapLibre base styles */
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100vh;
+    height: 100%;
+    margin: 0;
+  }
+}
+
+/* Keep the MapLibre popup/controls visually consistent with the design tokens */
+.maplibregl-popup-content {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+}
+.maplibregl-popup-tip {
+  border-top-color: var(--popover);
+  border-bottom-color: var(--popover);
+}
+.maplibregl-ctrl-attrib {
+  background: color-mix(in oklab, var(--background) 80%, transparent) !important;
+  color: var(--muted-foreground);
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--muted-foreground);
+}

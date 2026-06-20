@@ -1,0 +1,6 @@
+
+# Backend / Phase 1-2 artifacts
+**/.venv/
+*.log
+data/processed/street_name_cache.json
+data/processed/points/

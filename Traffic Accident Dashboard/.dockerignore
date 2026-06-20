@@ -1,0 +1,25 @@
+# Keep the build context small and fast.
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+src/
+
+# Node / frontend build artifacts (frontend is built inside the image)
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env.development
+
+# Data is mounted as a volume, not copied into the image
+data/
+
+# Old Streamlit app (superseded by the React frontend + FastAPI backend)
+app/
+
+# Logs, caches, misc
+*.log
+.git/
+.DS_Store
+**/.DS_Store

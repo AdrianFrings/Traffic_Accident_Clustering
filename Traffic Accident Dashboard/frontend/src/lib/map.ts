@@ -1,38 +1,15 @@
-import type { StyleSpecification } from 'maplibre-gl';
-
-// Semantic colours per transport mode (mirrors the original dashboard).
+// Strong, saturated colours per transport mode so the dots stand out on the grey basemap.
 export const MODE_COLORS: Record<string, string> = {
-  Car: '#e11d48', // rose
-  Bicycle: '#2563eb', // blue
-  Pedestrian: '#16a34a', // green
-  All: '#f59e0b', // amber
+  Car: '#e03131', // red
+  Bicycle: '#1c7ed6', // blue
+  Pedestrian: '#2b8a3e', // green
+  All: '#e8590c', // orange
 };
 
 export function modeColor(mode: string): string {
-  return MODE_COLORS[mode] ?? '#e11d48';
+  return MODE_COLORS[mode] ?? '#e03131';
 }
 
-// CartoDB raster basemaps — light (Positron) and dark (Dark Matter) to track
-// the site's theme. Raster keeps the dependency surface tiny (no tile server).
-const CARTO = (variant: 'light_all' | 'dark_all'): StyleSpecification => ({
-  version: 8,
-  sources: {
-    carto: {
-      type: 'raster',
-      tiles: [
-        `https://a.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{ratio}.png`,
-        `https://b.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{ratio}.png`,
-        `https://c.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{ratio}.png`,
-        `https://d.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{ratio}.png`,
-      ].map((u) => u.replace('{ratio}', '')),
-      tileSize: 256,
-      attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-    },
-  },
-  layers: [{ id: 'carto', type: 'raster', source: 'carto' }],
-});
-
-export function basemapStyle(isDark: boolean): StyleSpecification {
-  return CARTO(isDark ? 'dark_all' : 'light_all');
-}
+// OpenFreeMap "Positron": a grey vector basemap that needs no API key.
+// (CARTO's raster basemaps now answer every keyless request with an "API KEY REQUIRED" tile.)
+export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';

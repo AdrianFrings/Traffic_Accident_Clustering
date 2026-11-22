@@ -20,9 +20,9 @@ interface Props {
 
 function Kpi({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-2">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-xl font-bold">{value.toLocaleString()}</div>
+    <div className="paper-card px-4 py-2 min-w-[7.5rem]">
+      <div className="mono-caps">{label}</div>
+      <div className="pixel text-2xl leading-tight">{value.toLocaleString('en')}</div>
     </div>
   );
 }
@@ -40,12 +40,12 @@ export function Controls({
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground">City</label>
+        <label className="mono-caps">City</label>
         <CityCombobox cities={cities} value={city} onChange={onCityChange} />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground">Participant</label>
+        <label className="mono-caps">Road user</label>
         <Select value={mode} onValueChange={onModeChange}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Mode" />
@@ -61,7 +61,7 @@ export function Controls({
       </div>
 
       <div className="flex gap-3 ml-auto">
-        <Kpi label="Clusters" value={totalClusters} />
+        <Kpi label="Hotspots" value={totalClusters} />
         <Kpi label="Accidents" value={totalAccidents} />
       </div>
     </div>

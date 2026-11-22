@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ThemeProvider } from './components/theme-provider';
 import { Header } from './components/dashboard/Header';
 import { Controls } from './components/dashboard/Controls';
 import { RiskMap } from './components/dashboard/RiskMap';
@@ -8,6 +7,10 @@ import { ClusterDialog } from './components/dashboard/ClusterDialog';
 import { Skeleton } from './components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 import { api, type Cluster } from './lib/api';
+import { MODE_COLORS, modeColor } from './lib/map';
+import { HeroCollage } from './components/dashboard/Collage';
+
+const WRITEUP_URL = 'https://adrianfrings.com/project/traffic-accident-analysis';
 
 const DEFAULT_CITY = 'Frankfurt am Main';
 const PREFERRED_MODE = 'Car';
@@ -58,63 +61,104 @@ function Dashboard() {
     [clusters],
   );
 
+  const color = modeColor(mode);
+
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 pt-20 pb-10">
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold tracking-tight">Traffic Accident Risk Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
-            High-leverage traffic-safety intervention points across Germany, found by
-            density-based clustering of government accident data (2016–2024, injury
-            accidents). Select a city and road user to explore its worst hotspots.
-          </p>
+      <main className="max-w-7xl mx-auto px-4 pt-6 pb-10">
+        <section className="hero">
+          <div>
+            <h1>
+              Where traffic accidents <span className="pixel">cluster.</span>
+            </h1>
+            <p>
+              Nine years of injury accidents from the German accident atlas, grouped into hotspots
+              with density-based clustering. A few street corners collect a large share of the
+              crashes, and those are the places where fixing the street pays off most. Pick a city
+              and a road user, then click a hotspot to see what happens there.
+            </p>
+            <a className="hero-link" href={WRITEUP_URL}>
+              Read the write-up ↗
+            </a>
+          </div>
+          <HeroCollage
+            city={city || DEFAULT_CITY}
+            mode={mode}
+            hotspots={clusters.length}
+            accidents={totalAccidents}
+          />
+        </section>
+
+        <div className="mt-6">
+          <Controls
+            cities={cities}
+            modes={modes}
+            city={city}
+            mode={mode}
+            totalClusters={clusters.length}
+            totalAccidents={totalAccidents}
+            onCityChange={setCity}
+            onModeChange={setMode}
+          />
         </div>
 
-        <Controls
-          cities={cities}
-          modes={modes}
-          city={city}
-          mode={mode}
-          totalClusters={clusters.length}
-          totalAccidents={totalAccidents}
-          onCityChange={setCity}
-          onModeChange={setMode}
-        />
+        <div className="mt-5">
+          <div>
+            <div className="legend mono-caps mb-2.5">
+              {(['Car', 'Bicycle', 'Pedestrian', 'All'] as const).map((m) => (
+                <span key={m} style={{ opacity: m === mode ? 1 : 0.45 }}>
+                  <i style={{ background: MODE_COLORS[m] }} />
+                  {m === 'All' ? 'All road users' : m}
+                </span>
+              ))}
+              <span>· bigger dot = more accidents</span>
+            </div>
+          </div>
+        </div>
 
-        <div className="mt-4 grid lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 relative h-[420px] lg:h-[640px] rounded-xl border border-border overflow-hidden bg-muted">
+        <div className="grid lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 relative h-[440px] lg:h-[660px] map-frame overflow-hidden">
             {/* Map stays mounted so it re-fits to each city; loading is overlaid. */}
             <RiskMap clusters={clusters} mode={mode} onSelect={setSelected} />
             {loading && (
-              <div className="absolute inset-0 z-10 grid place-items-center bg-background/50 backdrop-blur-[2px]">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="absolute inset-0 z-10 grid place-items-center bg-[var(--paper)]/50 backdrop-blur-[2px]">
+                <Loader2 className="h-6 w-6 animate-spin" style={{ color }} />
               </div>
             )}
           </div>
 
-          <div className="rounded-xl border border-border bg-card/50 p-3 h-[420px] lg:h-[640px] flex flex-col">
-            <h2 className="text-sm font-medium px-1 pb-2">
-              High-risk locations
-              <span className="text-muted-foreground font-normal"> · worst first</span>
+          <div className="h-[440px] lg:h-[660px] flex flex-col">
+            <h2 className="mono-caps pb-2 mb-2 border-b border-[var(--ink)]">
+              Worst hotspots · {city}
             </h2>
             {loading ? (
-              <div className="space-y-2 p-1">
+              <div className="space-y-3 p-1">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-14 w-full rounded-lg" />
+                  <Skeleton key={i} className="h-16 w-full rounded-none" />
                 ))}
               </div>
             ) : (
-              <HotspotList clusters={clusters} mode={mode} onSelect={setSelected} />
+              <HotspotList clusters={clusters} onSelect={setSelected} />
             )}
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground mt-6">
-          Data source: German Traffic Accident Atlas (Destatis, Unfallatlas), 2016–2024,
-          dl-de/by-2-0. Clusters via DBSCAN (eps 50 m).
-        </p>
+        <footer className="site-footer mono-caps">
+          <span>
+            Data: Unfallatlas (Destatis), 2016–2024, dl-de/by-2-0 · DBSCAN, eps 50 m · Map ©{' '}
+            <a href="https://openfreemap.org" target="_blank" rel="noopener noreferrer">OpenFreeMap</a>{' '}
+            ©{' '}
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
+              OpenStreetMap
+            </a>{' '}
+            contributors
+          </span>
+          <span>
+            Built by <a href="https://adrianfrings.com">Adrian Frings</a>
+          </span>
+        </footer>
       </main>
 
       <ClusterDialog cluster={selected} city={city} mode={mode} onClose={() => setSelected(null)} />
@@ -124,8 +168,6 @@ function Dashboard() {
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="portfolio-theme">
-      <Dashboard />
-    </ThemeProvider>
+    <Dashboard />
   );
 }

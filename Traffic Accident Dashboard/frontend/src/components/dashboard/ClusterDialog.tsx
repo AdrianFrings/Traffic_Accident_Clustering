@@ -40,23 +40,24 @@ export function ClusterDialog({ cluster, city, mode, onClose }: Props) {
 
   return (
     <Dialog open={!!cluster} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto bg-[var(--paper)] border-[var(--rule)] rounded-none">
         {cluster && (
           <>
             <DialogHeader className="mb-2">
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <MapPin className="h-5 w-5 shrink-0" style={{ color }} />
+              <p className="mono-caps">Hotspot detail · {mode === 'All' ? 'all road users' : mode}</p>
+              <DialogTitle className="flex items-center gap-2 text-3xl font-semibold tracking-[-0.04em]">
+                <MapPin className="h-6 w-6 shrink-0" style={{ color }} />
                 {cluster.street_name}
               </DialogTitle>
               {cluster.location_name && cluster.location_name !== cluster.street_name && (
-                <p className="text-sm text-muted-foreground pl-7">{cluster.location_name}</p>
+                <p className="mono-caps pl-8">{cluster.location_name}</p>
               )}
             </DialogHeader>
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="flex flex-col">
-                <div className="relative h-80 md:h-[440px] rounded-lg border border-border bg-muted">
-                  {loading && <Skeleton className="absolute inset-0 rounded-lg" />}
+                <div className="relative h-80 md:h-[440px] map-frame">
+                  {loading && <Skeleton className="absolute inset-0" />}
                   {error && (
                     <div className="absolute inset-0 grid place-items-center text-sm text-muted-foreground">
                       Point data unavailable.
@@ -64,26 +65,26 @@ export function ClusterDialog({ cluster, city, mode, onClose }: Props) {
                   )}
                   {points && !error && <ClusterZoomMap points={points} color={color} />}
                 </div>
-                <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
+                <p className="mt-3 mono-caps leading-relaxed normal-case">
                   Coloured dots are the accidents in this hotspot; grey dots are nearby
                   accidents excluded as noise by the clustering.
                 </p>
               </div>
 
               <div className="flex flex-col">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold" style={{ color }}>
+                <div className="paper-card tone-b self-start px-5 py-3 -rotate-2">
+                  <div className="text-5xl font-semibold tracking-[-0.05em] leading-none" style={{ color }}>
                     {cluster.accident_count}
-                  </span>
-                  <span className="text-sm text-muted-foreground">total accidents</span>
+                  </div>
+                  <div className="mono-caps mt-1">accidents, 2016–2024</div>
                 </div>
 
-                <h4 className="text-sm font-medium mt-6 mb-3">Accident types</h4>
+                <h4 className="mono-caps mt-7 mb-3 border-b border-[var(--ink)] pb-1">Accident types</h4>
                 <div className="flex-1">
                   <AccidentTypeChart data={cluster.accident_types} color={color} />
                 </div>
 
-                <Button asChild className="w-full mt-6" variant="outline">
+                <Button asChild className="w-full mt-6 rounded-none mono-caps text-[var(--ink)] bg-transparent border-[var(--rule)] hover:bg-[var(--orange)] hover:border-[var(--orange)]" variant="outline">
                   <a href={cluster.google_maps_link} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Open intersection in Google Maps

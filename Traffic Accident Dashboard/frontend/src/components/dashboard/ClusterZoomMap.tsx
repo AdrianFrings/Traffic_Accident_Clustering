@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { ClusterPoints } from '../../lib/api';
-import { basemapStyle } from '../../lib/map';
-import { useIsDark } from '../../lib/useIsDark';
+import { BASEMAP_STYLE } from '../../lib/map';
 
 interface Props {
   points: ClusterPoints;
@@ -22,19 +21,16 @@ function fc(coords: { lat: number; lon: number }[]): GeoJSON.FeatureCollection {
 
 export function ClusterZoomMap({ points, color }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const isDark = useIsDark();
 
   useEffect(() => {
     if (!containerRef.current) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: basemapStyle(isDark),
+      style: BASEMAP_STYLE,
       center: [points.cluster[0]?.lon ?? 10, points.cluster[0]?.lat ?? 51],
       zoom: 16,
       attributionControl: { compact: true },
     });
-    mapRef.current = map;
 
     const resizeObserver = new ResizeObserver(() => map.resize());
     resizeObserver.observe(containerRef.current);
@@ -45,7 +41,7 @@ export function ClusterZoomMap({ points, color }: Props) {
         id: 'noise',
         type: 'circle',
         source: 'noise',
-        paint: { 'circle-radius': 4, 'circle-color': '#9ca3af', 'circle-opacity': 0.35 },
+        paint: { 'circle-radius': 3.5, 'circle-color': '#555555', 'circle-opacity': 0.45 },
       });
       map.addSource('pts', { type: 'geojson', data: fc(points.cluster) });
       map.addLayer({
@@ -55,8 +51,8 @@ export function ClusterZoomMap({ points, color }: Props) {
         paint: {
           'circle-radius': 7,
           'circle-color': color,
-          'circle-opacity': 0.7,
-          'circle-stroke-width': 1,
+          'circle-opacity': 0.85,
+          'circle-stroke-width': 1.5,
           'circle-stroke-color': '#ffffff',
         },
       });
@@ -69,11 +65,10 @@ export function ClusterZoomMap({ points, color }: Props) {
     return () => {
       resizeObserver.disconnect();
       map.remove();
-      mapRef.current = null;
     };
     // Points are stable for the dialog's lifetime; deliberately mount once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div ref={containerRef} className="h-full w-full rounded-lg overflow-hidden" />;
+  return <div ref={containerRef} className="h-full w-full overflow-hidden" />;
 }

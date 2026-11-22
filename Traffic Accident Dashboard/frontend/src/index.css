@@ -2,6 +2,7 @@
 @source './**/*.{js,ts,jsx,tsx}';
 @import 'tw-animate-css';
 @import './styles/globals.css';
+@import './styles/paper.css';
 
 /* MapLibre base styles */
 @import 'maplibre-gl/dist/maplibre-gl.css';
@@ -21,8 +22,9 @@
   background: var(--popover);
   color: var(--popover-foreground);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  border-radius: 0;
+  box-shadow: 0 10px 30px -10px rgba(41, 27, 20, 0.3);
+  font-family: Geist, sans-serif;
   padding: 0.625rem 0.75rem;
   font-size: 0.8125rem;
 }

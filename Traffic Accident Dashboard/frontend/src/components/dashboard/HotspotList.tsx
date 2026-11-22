@@ -1,50 +1,37 @@
-import { ChevronRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import type { Cluster } from '../../lib/api';
-import { modeColor } from '../../lib/map';
 
 interface Props {
   clusters: Cluster[];
-  mode: string;
   onSelect: (cluster: Cluster) => void;
 }
 
-export function HotspotList({ clusters, mode, onSelect }: Props) {
-  const color = modeColor(mode);
-
+export function HotspotList({ clusters, onSelect }: Props) {
   if (!clusters.length) {
-    return (
-      <p className="text-sm text-muted-foreground p-4">
-        No clusters found for this city and mode.
-      </p>
-    );
+    return <p className="mono-caps p-4">No hotspots for this city and road user.</p>;
   }
 
   return (
     <ScrollArea className="h-full">
-      <div className="space-y-2 p-1">
+      <div className="space-y-3 p-1 pr-3">
         {clusters.map((c, i) => (
           <button
             key={c.cluster_id}
             onClick={() => onSelect(c)}
-            className="w-full text-left rounded-lg border border-border bg-card hover:bg-accent transition-colors p-3 flex items-center gap-3 group"
+            className="paper-card w-full text-left p-3.5 flex items-start gap-3 group transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-[var(--orange)]"
           >
-            <span
-              className="flex-shrink-0 h-7 w-7 grid place-items-center rounded-full text-xs font-semibold text-white"
-              style={{ backgroundColor: color }}
-            >
-              {i + 1}
-            </span>
+            <span className="rank-num">{String(i + 1).padStart(2, '0')}</span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-medium text-sm">{c.street_name}</span>
-              <span className="block text-xs text-muted-foreground">
+              <span className="block truncate font-semibold tracking-tight text-[1.02rem]">
+                {c.street_name}
+              </span>
+              <span className="mono-caps block mt-0.5">
                 {c.accident_count} accidents
-                {c.location_name && c.location_name !== c.street_name
-                  ? ` · ${c.location_name}`
-                  : ''}
+                {c.location_name && c.location_name !== c.street_name ? ` · ${c.location_name}` : ''}
               </span>
             </span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+            <ArrowUpRight className="h-4 w-4 mt-1 text-[var(--muted-ink)] group-hover:text-[var(--orange)] transition-colors" />
           </button>
         ))}
       </div>
